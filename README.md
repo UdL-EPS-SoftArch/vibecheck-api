@@ -18,15 +18,16 @@ Backend REST service for the VibeCheck platform, built with Spring Boot.
 | Logout | List flagged content | Search public events |
 | Edit profile | Remove inappropriate event | Filter events by category |
 | View profile | Suspend user | Redirect to Register |
-| Create event | View app statistics | |
-| Edit event | | |
+| Create event | Moderate chat messages | |
+| Edit event | View app statistics | |
 | Delete event | | |
 | Join event (RSVP) | | |
 | Leave event | | |
 | View events on map | | |
 | Search and filter events | | |
+| Access event group chat | | |
+| Send messages in event chat | | |
 | Report content / event | | |
-| Leave review / rating | | |
 
 ## Entities Model
 
