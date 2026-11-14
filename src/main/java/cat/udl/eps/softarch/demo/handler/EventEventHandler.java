@@ -13,12 +13,15 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.HashSet;
 import java.util.Set;
 
 @Component
 @RepositoryEventHandler
 public class EventEventHandler {
+
+    private static final ZoneId EVENT_ZONE = ZoneId.of("Europe/Madrid");
 
     private final EntityManagerFactory entityManagerFactory;
 
@@ -74,7 +77,7 @@ public class EventEventHandler {
     }
 
     private void ensureFuture(LocalDateTime dateTime) {
-        if (dateTime != null && !dateTime.isAfter(LocalDateTime.now())) {
+        if (dateTime != null && !dateTime.isAfter(LocalDateTime.now(EVENT_ZONE))) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Event date must be in the future");
         }
     }
