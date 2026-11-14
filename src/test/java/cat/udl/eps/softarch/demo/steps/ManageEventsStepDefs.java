@@ -66,6 +66,15 @@ public class ManageEventsStepDefs {
 
     @Given("an event titled {string} exists and is owned by {string}")
     public void anEventTitledExistsAndIsOwnedBy(String title, String ownerUsername) {
+        createEvent(title, ownerUsername, LocalDateTime.of(2030, 11, 10, 16, 0));
+    }
+
+    @Given("a past event titled {string} that took place on {string} is owned by {string}")
+    public void aPastEventTitledIsOwnedBy(String title, String dateTime, String ownerUsername) {
+        createEvent(title, ownerUsername, LocalDateTime.parse(dateTime));
+    }
+
+    private void createEvent(String title, String ownerUsername, LocalDateTime dateTime) {
         // Earlier scenarios leave events behind, so clear this title to keep title lookups unambiguous
         eventsTitled(title).forEach(eventRepository::delete);
 
@@ -75,7 +84,7 @@ public class ManageEventsStepDefs {
         event.setTitle(title);
         event.setDescription("Meet other Erasmus students");
         event.setAddress("City park");
-        event.setDateTime(LocalDateTime.of(2030, 11, 10, 16, 0));
+        event.setDateTime(dateTime);
         event.setMaxParticipants(20);
         event.setEstimatedCost(new BigDecimal("5.00"));
         event.setSubcategory(subcategoryNamed(DEFAULT_SUBCATEGORY));

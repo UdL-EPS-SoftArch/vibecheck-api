@@ -23,6 +23,7 @@ import static org.hamcrest.Matchers.is;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -70,12 +71,29 @@ public class EventCommentsStepDefs {
             .andDo(print());
     }
 
+    @When("I edit the comment with content {string} to {string}")
+    public void iEditTheCommentWithContentTo(String content, String newContent) throws Exception {
+        Comment comment = findComment(content);
+        stepDefs.result = stepDefs.mockMvc.perform(
+                patch(comment.getUri())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(stepDefs.mapper.writeValueAsString(Map.of("content", newContent)))
+                    .characterEncoding(StandardCharsets.UTF_8)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .with(AuthenticationStepDefs.authenticate()))
+            .andDo(print());
+    }
+
+    @And("the comment with content {string} no longer exists")
+    public void theCommentNoLongerExists(String content) {
+        org.junit.jupiter.api.Assertions.assertTrue(
+                StreamSupport.stream(commentRepository.findAll().spliterator(), false)
+                        .noneMatch(comment -> content.equals(comment.getContent())));
+    }
+
     @When("I delete the comment with content {string}")
     public void iDeleteTheCommentWithContent(String content) throws Exception {
-        Comment comment = StreamSupport.stream(commentRepository.findAll().spliterator(), false)
-                .filter(candidate -> content.equals(candidate.getContent()))
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("No comment with content \"" + content + "\" exists"));
+        Comment comment = findComment(content);
         stepDefs.result = stepDefs.mockMvc.perform(
                 delete(comment.getUri())
                     .with(AuthenticationStepDefs.authenticate()))
@@ -127,6 +145,13 @@ public class EventCommentsStepDefs {
                     .with(AuthenticationStepDefs.authenticate()))
             .andDo(print())
             .andExpect(jsonPath("$.title", is(title)));
+    }
+
+    private Comment findComment(String content) {
+        return StreamSupport.stream(commentRepository.findAll().spliterator(), false)
+                .filter(candidate -> content.equals(candidate.getContent()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("No comment with content \"" + content + "\" exists"));
     }
 
     private void assertCommentAuthor(String username) throws Exception {

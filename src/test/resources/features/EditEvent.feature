@@ -22,6 +22,38 @@ Feature: Edit event
     Then The response code is 200
     And the event titled "Erasmus welcome picnic" is owned by "amina"
 
+  Scenario: The owner cannot move an upcoming event to a past date
+    Given There is a registered user with username "amina" and password "password" and email "amina@sample.app"
+    And an event titled "Welcome picnic" exists and is owned by "amina"
+    And I login as "amina" with password "password"
+    When I update the event titled "Welcome picnic" with:
+      | dateTime | 2020-06-15T16:00:00 |
+    Then The response code is 400
+
+  Scenario: The owner can still edit an event that already took place without changing its date
+    Given There is a registered user with username "amina" and password "password" and email "amina@sample.app"
+    And a past event titled "Old picnic" that took place on "2020-06-15T16:00:00" is owned by "amina"
+    And I login as "amina" with password "password"
+    When I update the event titled "Old picnic" with:
+      | description | Photos of the day |
+    Then The response code is 200
+
+  Scenario: The owner cannot move an event that already took place to another past date
+    Given There is a registered user with username "amina" and password "password" and email "amina@sample.app"
+    And a past event titled "Old picnic" that took place on "2020-06-15T16:00:00" is owned by "amina"
+    And I login as "amina" with password "password"
+    When I update the event titled "Old picnic" with:
+      | dateTime | 2021-01-01T10:00:00 |
+    Then The response code is 400
+
+  Scenario: The owner can reschedule an event that already took place to a future date
+    Given There is a registered user with username "amina" and password "password" and email "amina@sample.app"
+    And a past event titled "Old picnic" that took place on "2020-06-15T16:00:00" is owned by "amina"
+    And I login as "amina" with password "password"
+    When I update the event titled "Old picnic" with:
+      | dateTime | 2030-11-11T16:00:00 |
+    Then The response code is 200
+
   Scenario Outline: The owner cannot update an event without a required field
     Given There is a registered user with username "amina" and password "password" and email "amina@sample.app"
     And an event titled "Welcome picnic" exists and is owned by "amina"
