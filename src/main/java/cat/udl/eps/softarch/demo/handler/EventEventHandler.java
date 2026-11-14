@@ -12,6 +12,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -32,11 +33,16 @@ public class EventEventHandler {
     public void handleEventPreCreate(Event event) {
         User owner = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         event.setCreator(owner);
+        ensureFuture(event.getDateTime());
     }
 
     @HandleBeforeSave
     public void handleEventPreSave(Event event) {
         ensureOwner(event);
+        LocalDateTime newDateTime = event.getDateTime();
+        if (newDateTime != null && !newDateTime.equals(persistedDateTime(event.getId()))) {
+            ensureFuture(newDateTime);
+        }
     }
 
     @HandleBeforeDelete
@@ -64,6 +70,21 @@ public class EventEventHandler {
         joined.removeAll(before);
         if (!joined.isEmpty() && before.size() + joined.size() > event.getMaxParticipants()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Event is full");
+        }
+    }
+
+    private void ensureFuture(LocalDateTime dateTime) {
+        if (dateTime != null && !dateTime.isAfter(LocalDateTime.now())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Event date must be in the future");
+        }
+    }
+
+    private LocalDateTime persistedDateTime(Long eventId) {
+        try (EntityManager entityManager = entityManagerFactory.createEntityManager()) {
+            return entityManager.createQuery(
+                    "SELECT e.dateTime FROM Event e WHERE e.id = :id", LocalDateTime.class)
+                    .setParameter("id", eventId)
+                    .getResultStream().findFirst().orElse(null);
         }
     }
 

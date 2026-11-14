@@ -50,6 +50,24 @@ Feature: Create event
       | estimatedCost   |
       | subcategory     |
 
+  Scenario Outline: A new event cannot be dated in the past
+    Given There is a registered user with username "amina" and password "password" and email "amina@sample.app"
+    And I login as "amina" with password "password"
+    When I create an event with:
+      | title           | Welcome picnic              |
+      | description     | Meet other Erasmus students |
+      | address         | City park                   |
+      | dateTime        | <dateTime>                  |
+      | maxParticipants | 20                          |
+      | estimatedCost   | 5.00                        |
+      | subcategory     | Meetups                     |
+    Then The response code is 400
+
+    Examples:
+      | dateTime            |
+      | 2000-01-01T10:00:00 |
+      | 2020-06-15T16:00:00 |
+
   Scenario Outline: An event cannot be created with an invalid value
     Given There is a registered user with username "amina" and password "password" and email "amina@sample.app"
     And I login as "amina" with password "password"
